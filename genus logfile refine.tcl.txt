@@ -1,0 +1,265 @@
+set logfile $argv
+puts "\n***************************************\n           Process Started\n***************************************\n"
+
+#checking the logfile existance
+
+puts "\nInfo: Checking the logfile existance"
+
+if {! [file exists $logfile] } {
+    puts "Error: Logfile doesn't exiSts. Please provide the correct file or check the path provided\nExiting...."
+    exit
+} else {
+   puts "\nInfo: $logfile exists. Continuing the analysis."
+}  
+
+#File exists. Proceeding furthur
+set tmp_file [open /tmp/1 w]
+set log_file [open $logfile r]
+#INITIALIZING ALL VARIABLES WITH PRE-DEFINED ERROR CODES
+  #READING LIBRARIES
+  puts "\nSetting patterns for reading libraries"
+  set pattern1 "LBR-68"
+  #ERROR:LIB FILE DOES NOT EXISTS
+  set pattern2 "LBR-507"
+  #ERROR:LIB HEADER IS MISSING IN LIB FILE
+  set pattern3 "LBR-172"
+  #ERROR:SYNTHESIS FAILED. NOT HAVING USABLE GATES
+  set pattern4 "TIM-"
+  #ERROR:SYNTHESIS FAIELD. LIB NOT HAVE USABLE INVETERS
+  #READING HDL
+  puts "\nSetting patterns for reading hdl"
+  set pattern5 "VLOGPT-650"
+  #WARNING:CANNOT OPEN HDL FILE
+  set pattern6 "VLOGPT-1"
+  #ERROR:SYNTAX ERROR IN HDL FILE
+  set pattern7 "VLOGPT-22"
+  #ERROR:REDECLARAD VARIABLE
+  #ELABORATE
+  puts "\nSetting patterns for elaborate"
+  set pattern8 "CDFG-211"
+  #ERROR:COULD NOT FIND A PORT
+  set pattern9 "CDFG-431"
+  #ERROR:UNRESOLVED INSTANCES
+  set pattern10 "CDFG-210"
+  #ERRPR:COULD NOT FIND HDL DESIGN
+  #READ SDC
+  puts "\nSetting patterns for reading sdc"
+  set pattern11 "SDC-202"
+  #ERROR:COULD NOT INTERPRET SDC COMMAND
+  set pattern12 "SDC-212"
+  #ERROR:SDC CMD REQUIRES MODE SPECS
+  set pattern13 "SDC-204"
+  #ERROR:INVALID OPTION GIVEN TO AN SDC COMMAND
+  #SYNTHESIS
+  puts "\nSetting patterns for sythesis"
+  set pattern14 "SYNTH-27"
+  #ERROR:INVALID USAGE OF SYNTHESIS COMMAND
+  set pattern15 "MAP-2"
+  #ERROR:UNABLE TO MAP FF IN DESIGN TO FF IN LIBFILE
+  #LOW-POWER MESSAGES
+  puts "\nSetting patterns for low-power messages"
+  set pattern16 "LBR-101"
+  #UNUSABLE CLOCK GATING
+  set pattern17 "LBR-301"
+  #UNUSABLE ISOLATION CELL
+  set pattern18 "LBR-201"
+  #UNUSABLE SHIFTER PIN
+  set pattern19 "POPT-78"
+  #ERROR:NO USABLE INTEGRATED CLOCK-GATING CELL
+  #GENERAL TOOL RELATED MESSAGES
+  puts "\nSetting patterns for general tool related messages"
+  set pattern20 "TUI-24"
+  #ERROR:INCORRECT INPUT TO AN ATTRIBUTE
+  set pattern21 "TUI-64"
+  #ERROR:INCORRECT INPUT TO A COMMAND
+  set pattern22 "TUI-6"
+  #ERROR:INCORRECT IN TCL COMMAND
+  set pattern23 "TUI-23"
+  #ERROR:ENCOUNTERED A COMMAND TO PRESERVE A DESIGN WHICH IS PARTIALLY UNMAPPED OR EMPTY DESIGN
+  set pattern24 "TUI-17"
+  #ERROR:NEED TO SPECIFY ONE DESIGN AS MULTIPLE DESIGN DESIGNS
+  set pattern25 "TUI-62"
+  #ERROR:TOOL FOUND MULTIPLE OBJECTS IN PLACE OF SINGLE OBJECT
+  set pattern26 "TUI-61"
+  #ERROR:REQUIRED OBJECT PARAMETER NOT FOUND
+  puts "\nAll patterns set. Proceeding for analysis...\n"
+  puts "\nLooking for errors ----------------\n"
+  #FLAGS ARE USED TO COUNT AND PRINT THE HEADING OF EACH ERROR TYPE
+  #NOTE THAT FLAG NAMES ARE JUST GIVEN IN REVERSE ORDER AS IT DOESN'T MATTER
+  set flag 0
+  set flag6 -1
+  set flag5 -1
+  set flag4 -1
+  set flag3 -1
+  set flag2 -1
+  set flag1 -1
+  set flag0 -1
+  #EACH LINE IN THE GIVEN LOGFILE IS ASSIGNED TO LINE AND ALL 26 PATTERNS ARE COMPARED. FOUND PATTERNS ARE RECORDED AND PRINTED APPRPRIATELY
+  while {[gets $log_file line] != -1} {
+    if {[regexp  $pattern1 $line] ||
+        [regexp  $pattern2 $line] ||
+        [regexp  $pattern3 $line] ||
+        [regexp  $pattern4 $line] } {
+     if {$flag6 == -1} {
+      puts "\n"
+      puts "\n-----Errors regarding reading libraries------\n"
+     set flag6 0}
+     if { [regexp -all -- $pattern1 $line] } {
+      puts "$line"
+      incr flag6 1 }
+     if { [regexp -all -- $pattern2 $line] } {
+      puts "$line"
+      incr flag6 1 }
+     if { [regexp -all -- $pattern3 $line] } {
+     puts "$line"
+      incr flag6 1 }
+     if { [regexp -all -- $pattern4 $line] } {
+     puts "$line"
+      incr flag6 1 }
+     set flag 1
+     }
+    if {[regexp -all -- $pattern5 $line] ||
+        [regexp -all -- $pattern6 $line] ||
+        [regexp -all -- $pattern7 $line] } {
+     if {$flag5 == -1} {
+      puts "\n"
+      puts "\n-----Errors regarding reading hdl files------\n"
+     set flag5 0}
+     if { [regexp -all -- $pattern5 $line] } {
+      puts "$line"
+      incr flag5 1}
+     if { [regexp -all -- $pattern6 $line] } {
+      puts "$line"
+      incr flag5 1}
+     if { [regexp -all -- $pattern7 $line] } {
+      puts "$line"
+      incr flag5 1}
+     set flag 1
+     }
+    if {[regexp -all -- $pattern8 $line] ||
+        [regexp -all -- $pattern9 $line] ||
+        [regexp -all -- $pattern10 $line] } {
+     if {$flag4 == -1} {
+      puts "\n"
+      puts "\n-----Errors regarding synthesis------\n"
+     set flag4 0}
+     if { [regexp -all -- $pattern8 $line] } {
+      puts "$line"
+      incr flag4 1}
+     if { [regexp -all -- $pattern9 $line] } {
+      puts "$line"
+      incr flag4 1}
+     if { [regexp -all -- $pattern10 $line] } {
+      puts "$line"
+      incr flag4 1}
+     set flag 1
+     }
+    if {[regexp -all -- $pattern11 $line] ||
+        [regexp -all -- $pattern12 $line] ||
+        [regexp -all -- $pattern13 $line] } {
+     if {$flag3 == -1} {
+      puts "\n"
+      puts "\n-----Errors regarding SDC------\n"
+     set flag3 0}
+     if { [regexp -all -- $pattern11 $line] } {
+      puts "$line"
+      incr flag3 1}
+     if { [regexp -all -- $pattern12 $line] } {
+      puts "$line"
+      incr flag3 1}
+     if { [regexp -all -- $pattern13 $line] } {
+      puts "$line"
+      incr flag3 1}
+     set flag 1
+     }
+    if {[regexp -all -- $pattern14 $line] ||
+        [regexp -all -- $pattern15 $line] } {
+     if {$flag2 == -1} {
+     puts "\n"
+     puts "\n-----Errors regarding elaboration------\n"
+     set flag2 0}
+     if { [regexp -all -- $pattern14 $line] } {
+     puts "$line"
+     incr flag2 1}
+     if { [regexp -all -- $pattern15 $line] } {
+     puts "$line"
+     incr flag2 1}
+     set flag 1
+     }
+    if {[regexp -all -- $pattern16 $line] ||
+        [regexp -all -- $pattern17 $line] ||
+        [regexp -all -- $pattern18 $line] ||
+        [regexp -all -- $pattern19 $line] } {
+     if {$flag1 == -1} {
+     puts "\n"
+     puts "\n-----Low power related errors-----\n"
+     set flag1 0}  
+     if { [regexp -all -- $pattern16 $line] } {
+     puts "$line"
+     incr flag1 1}
+     if { [regexp -all -- $pattern17 $line] } {
+     puts "$line"
+     incr flag1 1}
+     if { [regexp -all -- $pattern18 $line] } {
+     puts "$line"
+     incr flag1 1}
+     if { [regexp -all -- $pattern19 $line] } {
+     puts "$line"
+     incr flag1 1}
+     set flag 1
+     }
+    if {[regexp -all -- $pattern20 $line] ||
+        [regexp -all -- $pattern21 $line] ||
+        [regexp -all -- $pattern22 $line] ||
+        [regexp -all -- $pattern23 $line] ||
+        [regexp -all -- $pattern24 $line]  ||
+        [regexp -all -- $pattern25 $line] ||
+        [regexp -all -- $pattern26 $line] } {
+     if {$flag0 == -1} {
+     puts "\n"
+     puts "\n-----General tool related errors related errors-----\n"
+     set flag0 0}
+     if { [regexp -all -- $pattern20 $line] } {
+      puts "$line"
+      incr flag0 1}
+     if { [regexp -all -- $pattern21 $line] && ![regexp -all -- $pattern22 $line]  } {
+      puts "$line"
+      incr flag0 1}
+     if { [regexp -all -- $pattern22 $line] } {
+      puts "$line"
+      incr flag0 1}
+     if { [regexp -all -- $pattern23 $line] } {
+      puts "$line"
+      incr flag0 1}
+     if { [regexp -all -- $pattern24 $line] } {
+      puts "$line"
+      incr flag0 1}
+     if { [regexp -all -- $pattern25 $line] && ![regexp -all -- $pattern22 $line] } {
+      puts "$line"
+      incr flag0 1}
+     if { [regexp -all -- $pattern26 $line] && ![regexp -all -- $pattern22 $line] } {
+      puts "$line"
+      incr flag0 1}
+     set flag 1
+     }
+  }
+  #AT THE END, USING FLAG VARIABLES, MESSAGES ARE PRINTED ACCORDINGLY
+  #IF ERRORS ARE FOUND, SUMMARY REPORT IS PRINTED CONSISTING OF ERROR COUNTS
+  if {$flag == 0} {
+    puts "Found no errors. Warnings might be present. Mostly, you can proceed furthur"
+  } else {
+    puts "\n"
+    puts "\n************************ Summary\
+           ************************"
+    puts "\nErrors regarding reading libraries------       $flag6"
+    puts "\nErrors regarding reading hdl files------       $flag5"
+    puts "\nErrors regarding synthesis------               $flag4"
+    puts "\nErrors regarding SDC------                     $flag3"
+    puts "\nErrors regarding elaboration------             $flag2"
+    puts "\nLow power related errors-----                  $flag1"
+    puts "\nGeneral tool related errors related errors-----$flag0"
+    puts "\nTotal errors found in Genus logfile - [ expr { $flag0 + $flag1 + $flag2 + $flag3 + $flag4 + $flag5 + $flag6 } ]"
+  }
+puts "\n"
+puts "\n"
+puts "\n****************Thank you for using refining script***************\n"
